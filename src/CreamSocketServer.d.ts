@@ -2,9 +2,9 @@ import { Socket } from 'net';
 import { EventEmitter } from 'events';
 
 /**
- * Options for initializing the AdvancedSocketServer.
+ * Options for initializing the CreamSocketServer.
  */
-export interface AdvancedSocketServerOptions {
+export interface CreamSocketServerOptions {
   /**
    * Port number on which the server listens.
    */
