@@ -3,7 +3,7 @@
 example ws server with CreamSocketServer
 
 ```typescript
-import { CreamSocketServer } from 'CreamSocketServer';
+import { CreamSocketServer } from 'creamsocket-server';
 
 // Server Setup
 const server = new CreamSocketServer({ port: 8080, host: 'localhost' });
