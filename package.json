@@ -1,6 +1,6 @@
 {
   "name": "creamsocketserver",
-  "version": "1.0.3",
+  "version": "1.0.0",
   "description": "A light weight server framework for websockets no external libraries",
   "main": "src/CreamSocketServer.js",
   "types": "src/CreamSocketServer.d.ts",
