@@ -1,6 +1,6 @@
 {
   "name": "creamsocketserver",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A server for CreamSocket to interact with creamSocket Client",
   "main": "src/CreamSocketServer.js",
   "types": "src/CreamSocketServer.d.ts",
