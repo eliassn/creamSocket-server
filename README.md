@@ -1,6 +1,6 @@
 # creamSocketServer
 
-example ws server with CreamSocketServer
+#if you are using typescript try adding the following line to your tsconfig.json file "moduleResolution": "NodeNext",
 
 ```typescript
 import { CreamSocketServer } from 'creamsocket-server';
