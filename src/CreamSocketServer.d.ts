@@ -64,14 +64,14 @@ export declare class CreamSocketServer extends EventEmitter {
    *
    * @event CreamSocketServer#listening
    */
-
+  on(event: 'listening', listener: () => void): this;
   /**
    * Emits a 'connection' event when a new client connects.
    *
    * @event CreamSocketServer#connection
    * @param {Socket} socket - The connected client's socket.
    */
-
+  on(event: 'connection', listener: (socket: Socket) => void): this;
   /**
    * Emits a 'message' event when a message is received from a client.
    *
@@ -79,17 +79,26 @@ export declare class CreamSocketServer extends EventEmitter {
    * @param {Socket} socket - The client's socket.
    * @param {string} message - The received message.
    */
-
+  on(event: 'message', listener: (socket: Socket, message: string) => void): this;
   /**
    * Emits a 'disconnection' event when a client disconnects.
    *
    * @event CreamSocketServer#disconnection
    * @param {Socket} socket - The disconnected client's socket.
    */
-
+  on(event: 'disconnection', listener: (socket: Socket) => void): this;
   /**
    * Emits a 'close' event when the server is closed.
    *
    * @event CreamSocketServer#close
    */
+  on(event: 'close', listener: () => void): this;
+  /**
+   * Overrides the EventEmitter's emit method for type safety.
+   */
+  emit(event: 'listening'): boolean;
+  emit(event: 'connection', socket: Socket): boolean;
+  emit(event: 'message', socket: Socket, message: string): boolean;
+  emit(event: 'disconnection', socket: Socket): boolean;
+  emit(event: 'close'): boolean;
 }
