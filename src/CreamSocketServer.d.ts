@@ -50,7 +50,14 @@ export declare class CreamSocketServer extends EventEmitter {
    * @returns {void}
    */
   sendMessage(socket: Socket, message: string): void;
-
+   /**
+   * Sends a notification to a specific client.
+   *
+   * @param {Socket} socket - The target client's socket.
+   * @param {string} notification - The notification to send.
+   * @returns {void}
+   */
+  sendNotification(socket: Socket, notification: string): void;
   /**
    * Broadcasts a message to all connected clients.
    *
