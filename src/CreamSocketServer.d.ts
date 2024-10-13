@@ -88,6 +88,14 @@ export declare class CreamSocketServer extends EventEmitter {
    */
   on(event: 'message', listener: (socket: Socket, message: string) => void): this;
   /**
+   * Emits a 'notification' event when a notification is received from a client.
+   *
+   * @event CreamSocketServer#notification
+   * @param {Socket} socket - The client's socket.
+   * @param {string} notification - The received notification.
+   */
+  on(event: 'notification', listener: (socket: Socket, notification: string) => void): this;
+  /**
    * Emits a 'disconnection' event when a client disconnects.
    *
    * @event CreamSocketServer#disconnection
@@ -103,9 +111,27 @@ export declare class CreamSocketServer extends EventEmitter {
   /**
    * Overrides the EventEmitter's emit method for type safety.
    */
+    /**
+   * Removes a listener for the specified event.
+   *
+   * @param {string} event - The event name.
+   * @param {Function} listener - The listener function to remove.
+   * @returns {this}
+   */
+  off(event: 'listening', listener: () => void): this;
+  off(event: 'connection', listener: (socket: Socket) => void): this;
+  off(event: 'message', listener: (socket: Socket, message: string) => void): this;
+  off(event: 'notification', listener: (socket: Socket, notification: string) => void): this;
+  off(event: 'disconnection', listener: (socket: Socket) => void): this;
+  off(event: 'close', listener: () => void): this;
+  off(event: string, listener: Function): this;
+  /**
+   * Overrides the EventEmitter's emit method for type safety.
+   */
   emit(event: 'listening'): boolean;
   emit(event: 'connection', socket: Socket): boolean;
   emit(event: 'message', socket: Socket, message: string): boolean;
+  emit(event: 'notification', socket: Socket, notification: string): boolean;
   emit(event: 'disconnection', socket: Socket): boolean;
   emit(event: 'close'): boolean;
 }
