@@ -253,7 +253,15 @@ export class CreamSocketServer extends EventEmitter {
     const frame = this._encodeFrame(message);
     socket.write(frame);
   }
-
+   /**
+   * Sends a natification to a specific client.
+   * @param {net.Socket} socket - The target socket.
+   * @param {string} notification - The notification to send.
+   */
+  sendNotification(socket, notification) {
+    const frame = this._encodeFrame(notification, 0x2); // Assuming opcode 0x2 for notifications
+    socket.write(frame);
+  }
   /**
    * Broadcasts a message to all connected clients.
    * @param {string} message - The message to broadcast.
