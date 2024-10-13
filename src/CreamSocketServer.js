@@ -150,6 +150,9 @@ export class CreamSocketServer extends EventEmitter {
       case 0x1: // Text frame
         this.emit('message', socket, frame.payload);
         break;
+      case 0x2: // Notification frame
+        this.emit('notification', socket, frame.payload);
+        break;
       case 0x8: // Connection close
         socket.end();
         break;
@@ -269,6 +272,15 @@ export class CreamSocketServer extends EventEmitter {
   broadcast(message) {
     for (const client of this.clients) {
       this.sendMessage(client, message);
+    }
+  }
+   /**
+   * Broadcasts a notification to all connected clients.
+   * @param {string} notification - The notification to broadcast.
+   */
+   broadcastNotification(notification) {
+    for (const client of this.clients) {
+      this.sendNotification(client, notification);
     }
   }
 
