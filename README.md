@@ -1,6 +1,6 @@
 # creamSocketServer
-##CreamSocketServer now supports notifications
-###if you are using typescript try adding the following line to your tsconfig.json file "moduleResolution": "NodeNext",
+## CreamSocketServer now supports notifications
+### if you are using typescript try adding the following line to your tsconfig.json file "moduleResolution": "NodeNext",
 
 ```typescript
 import { CreamSocketServer } from 'creamsocket-server';
