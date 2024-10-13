@@ -1,6 +1,6 @@
 # creamSocketServer
-
-#if you are using typescript try adding the following line to your tsconfig.json file "moduleResolution": "NodeNext",
+##CreamSocketServer now supports notifications
+###if you are using typescript try adding the following line to your tsconfig.json file "moduleResolution": "NodeNext",
 
 ```typescript
 import { CreamSocketServer } from 'creamsocket-server';
@@ -18,6 +18,11 @@ server.on('connection', (socket) => {
   socket.on('message', (msg: string) => {
     console.log('Received message from client:', msg);
     server.sendMessage(socket, `Server echo: ${msg}`);
+  });
+  socket.on('notification', (notification: string) => {
+    console.log('Received notification from client:', notification);
+    // Optionally, broadcast the notification to all clients
+    server.broadcastNotification(`Broadcast: ${notification}`);
   });
 });
 server.start();
