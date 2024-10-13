@@ -1,5 +1,5 @@
 # creamSocketServer
-(https://github.com/eliassn/creamSocket-server/wiki 'Documentaion')
+[Link text](https://github.com/eliassn/creamSocket-server/wiki 'Documentaion')
 ## CreamSocketServer now supports notifications
 ### if you are using typescript try adding the following line to your tsconfig.json file "moduleResolution": "NodeNext",
 
