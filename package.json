@@ -1,6 +1,6 @@
 {
   "name": "creamsocket-server",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "A light weight server framework for websockets no external libraries",
   "main": "src/CreamSocketServer.js",
   "types": "src/CreamSocketServer.d.ts",
@@ -13,7 +13,7 @@
     "url": "git+https://github.com/eliassn/creamSocketServer.git"
   },
   "keywords": [
-   "creamSocket",
+    "creamSocket",
     "socketjs",
     "socket",
     "socketio",
