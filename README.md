@@ -6,7 +6,7 @@
 ```json
 "moduleResolution": "NodeNext"
 ```
-
+- Example
 ```typescript
 import { CreamSocketServer } from 'creamsocket-server';
 
