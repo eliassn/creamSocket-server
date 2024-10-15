@@ -2,7 +2,10 @@
 - Click [Documentation](https://github.com/eliassn/creamSocket-server/wiki/CreamSocketServer)
 - [:heart: Sponsor](https://github.com/sponsors/eliassn)
 ## CreamSocketServer now supports notifications
-### if you are using typescript try adding the following line to your tsconfig.json file "moduleResolution": "NodeNext"
+### if you are encountering typescript errors try adding the following line to your tsconfig.json file 
+```json
+"moduleResolution": "NodeNext"
+```
 
 ```typescript
 import { CreamSocketServer } from 'creamsocket-server';
