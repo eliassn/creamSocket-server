@@ -1,4 +1,7 @@
 # creamSocketServer
+[![](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/eliassn)
+
+
 - Click [Documentation](https://github.com/eliassn/creamSocket-server/wiki/CreamSocketServer)
 - If you like consider sponsoring this project [:heart: Sponsor](https://github.com/sponsors/eliassn)
 ## CreamSocketServer now supports notifications
