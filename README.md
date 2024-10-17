@@ -20,7 +20,7 @@ server.on('listening', () => {
 server.on('connection', (socket) => {
   console.log('New client connected.');
 
-  socket.on('message', (msg: string) => {
+  socket.on('message', (msg: string|object) => {
     console.log('Received message from client:', msg);
     server.sendMessage(socket, { text: 'Hello, Client!' });
   });
