@@ -1,5 +1,3 @@
-// CreamSocketParser.d.ts
-
 import { Socket } from 'net';
 
 export declare class CreamSocketParser {

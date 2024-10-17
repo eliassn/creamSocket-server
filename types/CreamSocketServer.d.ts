@@ -1,5 +1,6 @@
 import { Socket,Server } from 'net';
 import { EventEmitter } from 'events';
+import { CreamSocketParser } from './CreamSocketParser';
 
 /**
  * Options for initializing the CreamSocketServer.
