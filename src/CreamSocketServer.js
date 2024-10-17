@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import EventEmitter from 'events';
 import {
   CreamSocketParser
-} from './CreamSocketParser';
+} from './CreamSocketParser.js';
 
 /**
  * Represents a WebSocket server.
@@ -264,7 +264,7 @@ export class CreamSocketServer extends EventEmitter {
     socket.write(frame);
   }
 
- /**
+  /**
    * Sends a text message to a specific client.
    * @param {net.Socket} socket - The target socket.
    * @param {string | object} message - The message to send. Can be a string or an object.
