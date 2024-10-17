@@ -264,33 +264,70 @@ export class CreamSocketServer extends EventEmitter {
     socket.write(frame);
   }
 
+ /**
+   * Sends a text message to a specific client.
+   * @param {net.Socket} socket - The target socket.
+   * @param {string | object} message - The message to send. Can be a string or an object.
+   */
+  sendMessage(socket, message) {
+    const encodedMessage = this.parser.encode(message);
+    const frame = this._encodeFrame(encodedMessage);
+    socket.write(frame);
+  }
+
   /**
    * Sends a notification to a specific client.
    * @param {net.Socket} socket - The target socket.
-   * @param {string | object} notification - The notification to send.
+   * @param {string | object} notification - The notification to send. Can be a string or an object.
    */
   sendNotification(socket, notification) {
-    const frame = this._encodeFrame(notification, 0x2); // Assuming opcode 0x2 for notifications
+    const encodedNotification = this.parser.encode(notification);
+    const frame = this._encodeFrame(encodedNotification, 0x2); // Opcode 0x2 for notifications
     socket.write(frame);
   }
 
   /**
    * Broadcasts a message to all connected clients.
-   * @param {string | object} message - The message to broadcast.
+   * @param {string | object} message - The message to broadcast. Can be a string or an object.
    */
   broadcast(message) {
+    const encodedMessage = this.parser.encode(message);
+    const frame = this._encodeFrame(encodedMessage);
     for (const client of this.clients) {
-      this.sendMessage(client, message);
+      client.write(frame);
+    }
+  }
+
+  /**
+   * Broadcasts a notification to all connected clients.
+   * @param {string | object} notification - The notification to broadcast. Can be a string or an object.
+   */
+  broadcastNotification(notification) {
+    const encodedNotification = this.parser.encode(notification);
+    const frame = this._encodeFrame(encodedNotification, 0x2); // Opcode 0x2 for notifications
+    for (const client of this.clients) {
+      client.write(frame);
     }
   }
 
   /**
    * Sends a Pong frame in response to a Ping.
    * @param {net.Socket} socket - The target socket.
-   * @param {Buffer} payload - The ping payload to reply with.
+   * @param {string} payload - The payload from the Ping.
    */
   _sendPong(socket, payload) {
-    const pongFrame = this._encodeFrame(payload, 0xA); // Opcode 0xA for Pong
-    socket.write(pongFrame);
+    const encodedPong = this.parser.encode(payload);
+    const frame = this._encodeFrame(encodedPong, 0xA);
+    socket.write(frame);
+  }
+
+  /**
+   * Sends a Close frame to the client.
+   * @param {net.Socket} socket - The target socket.
+   */
+  _sendCloseFrame(socket) {
+    const frame = this._encodeFrame('', 0x8);
+    socket.write(frame);
+    socket.end();
   }
 }
