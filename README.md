@@ -22,10 +22,10 @@ server.on('connection', (socket) => {
 
   socket.on('message', (msg: string) => {
     console.log('Received message from client:', msg);
-    server.sendMessage(socket, `Server echo: ${msg}`);
+    server.sendMessage(socket, { text: 'Hello, Client!' });
   });
-  socket.on('notification', (notification: string) => {
-    console.log('Received notification from client:', notification);
+  socket.on('notification', (notification: string | object) => {
+    console.log('Received notification from client:', notification||notification.message);
     // Optionally, broadcast the notification to all clients
     server.broadcastNotification(`Broadcast: ${notification}`);
   });
