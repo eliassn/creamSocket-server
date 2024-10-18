@@ -96,84 +96,84 @@ export class CreamSocketParser {
 
     return decodedData;
   }
-}
 
-/**
- * Handles incoming messages.
- * @param {Buffer | string} data - The received message data.
- * @param {net.Socket} socket - The client's socket for potential response.
- * @returns {object | string | null} - The processed message or notification.
- */
-handleMessage(data, socket) {
-  const message = this.decode(data);
 
-  if (!message) {
-    console.error('Invalid message format.');
-    return null;
+  /**
+   * Handles incoming messages.
+   * @param {Buffer | string} data - The received message data.
+   * @param {net.Socket} socket - The client's socket for potential response.
+   * @returns {object | string | null} - The processed message or notification.
+   */
+  handleMessage(data, socket) {
+    const message = this.decode(data);
+
+    if (!message) {
+      console.error('Invalid message format.');
+      return null;
+    }
+
+    if (message.type === 'message') {
+      console.log('Message received:', message.payload);
+      return message.payload;
+    } else if (message.type === 'notification') {
+      return this.handleNotification(message, socket);
+    } else {
+      console.warn('Unknown message type:', message);
+      return null;
+    }
   }
 
-  if (message.type === 'message') {
-    console.log('Message received:', message.payload);
-    return message.payload;
-  } else if (message.type === 'notification') {
-    return this.handleNotification(message, socket);
-  } else {
-    console.warn('Unknown message type:', message);
-    return null;
-  }
-}
+  /**
+   * Handles incoming notifications.
+   * @param {object} notification - The received notification object.
+   * @param {net.Socket} socket - The client's socket for potential response.
+   * @returns {object} - The processed notification.
+   */
+  handleNotification(notification, socket) {
+    if (!notification.payload) {
+      console.error('Notification payload missing.');
+      return null;
+    }
 
-/**
- * Handles incoming notifications.
- * @param {object} notification - The received notification object.
- * @param {net.Socket} socket - The client's socket for potential response.
- * @returns {object} - The processed notification.
- */
-handleNotification(notification, socket) {
-  if (!notification.payload) {
-    console.error('Notification payload missing.');
-    return null;
-  }
+    console.log('Notification received:', notification.payload);
 
-  console.log('Notification received:', notification.payload);
+    // If needed, send a response or acknowledgment to the client
+    if (notification.responseRequired) {
+      const acknowledgment = {
+        type: 'ack',
+        message: 'Notification received successfully',
+      };
+      socket.write(this.encode(acknowledgment));
+    }
 
-  // If needed, send a response or acknowledgment to the client
-  if (notification.responseRequired) {
-    const acknowledgment = {
-      type: 'ack',
-      message: 'Notification received successfully',
-    };
-    socket.write(this.encode(acknowledgment));
+    return notification.payload;
   }
 
-  return notification.payload;
-}
+  /**
+   * Handles sending a message.
+   * @param {net.Socket} socket - The target client's socket.
+   * @param {string | object} message - The message to send.
+   */
+  sendMessage(socket, message) {
+    const frame = this.encode({
+      type: 'message',
+      payload: message,
+    });
+    socket.write(frame);
+  }
 
-/**
- * Handles sending a message.
- * @param {net.Socket} socket - The target client's socket.
- * @param {string | object} message - The message to send.
- */
-sendMessage(socket, message) {
-  const frame = this.encode({
-    type: 'message',
-    payload: message,
-  });
-  socket.write(frame);
-}
+  /**
+   * Handles sending a notification.
+   * @param {net.Socket} socket - The target client's socket.
+   * @param {string | object} notification - The notification to send.
+   */
+  sendNotification(socket, notification) {
+    const frame = this.encode({
+      type: 'notification',
+      payload: notification,
+      responseRequired: true, // Specify if acknowledgment is needed
+    }, 0x2); // 0x2 for binary data if needed
 
-/**
- * Handles sending a notification.
- * @param {net.Socket} socket - The target client's socket.
- * @param {string | object} notification - The notification to send.
- */
-sendNotification(socket, notification) {
-  const frame = this.encode({
-    type: 'notification',
-    payload: notification,
-    responseRequired: true, // Specify if acknowledgment is needed
-  }, 0x2); // 0x2 for binary data if needed
-
-  socket.write(frame);
-}
+    socket.write(frame);
+  }
 }
