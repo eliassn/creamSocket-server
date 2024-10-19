@@ -6,16 +6,9 @@ import {
 } from './CreamSocketParser.js';
 
 /**
- * Represents a WebSocket server.
+ * Represents a CreamSocket server.
  */
 export class CreamSocketServer extends EventEmitter {
-  /**
-   * Creates an instance of CreamSocketServer.
-   * @param {Object} options - Server options.
-   * @param {number} options.port - Port number to listen on.
-   * @param {string} [options.host='localhost'] - Host address.
-   * @param {string} [options.format='json'] - Data format (e.g., 'json' or 'binary').
-   */
   constructor({
     port,
     host = 'localhost',
@@ -24,37 +17,27 @@ export class CreamSocketServer extends EventEmitter {
     super();
     this.port = port;
     this.host = host;
-    this.parser = new CreamSocketParser(format); // Initialize parser with format
+    this.parser = new CreamSocketParser(format);
     this.server = net.createServer(this._handleConnection.bind(this));
     this.clients = new Set();
   }
 
-  /**
-   * Starts the WebSocket server.
-   */
   start() {
     this.server.listen(this.port, this.host, () => {
-      console.log(`WebSocket server listening on ${this.host}:${this.port}`);
+      console.log(`CreamSocket server listening on ${this.host}:${this.port}`);
       this.emit('listening');
     });
   }
 
-  /**
-   * Stops the WebSocket server.
-   */
   stop() {
     this.server.close(() => {
-      console.log('WebSocket server stopped.');
+      console.log('CreamSocket server stopped.');
       this.emit('close');
     });
-    this.clients.forEach((client) => client.destroy());
+    this.clients.forEach(client => client.destroy());
     this.clients.clear();
   }
 
-  /**
-   * Handles incoming TCP connections.
-   * @param {net.Socket} socket - The connected socket.
-   */
   _handleConnection(socket) {
     console.log('New TCP connection established.');
 
@@ -73,20 +56,10 @@ export class CreamSocketServer extends EventEmitter {
     });
   }
 
-  /**
-   * Checks if the incoming request is a WebSocket upgrade request.
-   * @param {string} request - The raw HTTP request.
-   * @returns {boolean} - True if it's a WebSocket upgrade request.
-   */
   _isWebSocketRequest(request) {
     return request.includes('Upgrade: websocket');
   }
 
-  /**
-   * Performs the WebSocket handshake.
-   * @param {net.Socket} socket - The connected socket.
-   * @param {string} request - The raw HTTP request.
-   */
   _performHandshake(socket, request) {
     const headers = this._parseHeaders(request);
     const secWebSocketKey = headers['sec-websocket-key'];
@@ -114,11 +87,6 @@ export class CreamSocketServer extends EventEmitter {
     });
   }
 
-  /**
-   * Parses HTTP headers from the request.
-   * @param {string} request - The raw HTTP request.
-   * @returns {Object} - Parsed headers as key-value pairs.
-   */
   _parseHeaders(request) {
     const lines = request.split('\r\n');
     const headers = {};
@@ -131,11 +99,6 @@ export class CreamSocketServer extends EventEmitter {
     return headers;
   }
 
-  /**
-   * Generates the Sec-WebSocket-Accept value.
-   * @param {string} key - The Sec-WebSocket-Key from the client.
-   * @returns {string} - The Sec-WebSocket-Accept value.
-   */
   _generateAcceptValue(key) {
     return crypto
       .createHash('sha1')
@@ -143,11 +106,6 @@ export class CreamSocketServer extends EventEmitter {
       .digest('base64');
   }
 
-  /**
-   * Handles incoming WebSocket frames.
-   * @param {net.Socket} socket - The connected socket.
-   * @param {Buffer} data - The received data.
-   */
   _handleFrame(socket, data) {
     const frame = this._decodeFrame(data);
     if (!frame) return;
@@ -168,18 +126,12 @@ export class CreamSocketServer extends EventEmitter {
         this._sendPong(socket, frame.payload);
         break;
       case 0xA: // Pong
-        // Handle pong if implementing heartbeat
         break;
       default:
         console.log(`Unhandled opcode: ${frame.opcode}`);
     }
   }
 
-  /**
-   * Decodes a WebSocket frame.
-   * @param {Buffer} buffer - The received data buffer.
-   * @returns {Object|null} - Decoded frame or null if invalid.
-   */
   _decodeFrame(buffer) {
     const firstByte = buffer.readUInt8(0);
     const secondByte = buffer.readUInt8(1);
@@ -217,25 +169,18 @@ export class CreamSocketServer extends EventEmitter {
     return {
       fin,
       opcode,
-      payload: decodedPayload.toString()
+      payload: decodedPayload.toString(),
     };
   }
 
-  /**
-   * Encodes a message into a WebSocket frame.
-   * @param {string} message - The message to send.
-   * @returns {Buffer} - The encoded frame.
-   */
   _encodeFrame(message, opcode = 0x1) {
     const payload = Buffer.from(this.parser.encode(message));
     const payloadLength = payload.length;
 
     let frame = [];
 
-    // First byte: FIN and opcode (0x1 for text, 0x2 for notification)
     frame.push(0x80 | opcode);
 
-    // Determine payload length
     if (payloadLength < 126) {
       frame.push(payloadLength);
     } else if (payloadLength < 65536) {
@@ -243,9 +188,7 @@ export class CreamSocketServer extends EventEmitter {
       frame.push((payloadLength >> 8) & 0xff);
       frame.push(payloadLength & 0xff);
     } else {
-      // Note: JavaScript can't handle integers larger than 2^53 - 1
       frame.push(127);
-      // Push 8 bytes (64 bits) for payload length
       for (let i = 7; i >= 0; i--) {
         frame.push((payloadLength >> (i * 8)) & 0xff);
       }
@@ -254,42 +197,17 @@ export class CreamSocketServer extends EventEmitter {
     return Buffer.concat([Buffer.from(frame), payload]);
   }
 
-  /**
-   * Sends a text message to a specific client.
-   * @param {net.Socket} socket - The target socket.
-   * @param {string | object} message - The message to send.
-   */
   sendMessage(socket, message) {
     const frame = this._encodeFrame(message, 0x1);
     socket.write(frame);
   }
 
-  /**
-   * Sends a text message to a specific client.
-   * @param {net.Socket} socket - The target socket.
-   * @param {string | object} message - The message to send. Can be a string or an object.
-   */
-  sendMessage(socket, message) {
-    const encodedMessage = this.parser.encode(message);
-    const frame = this._encodeFrame(encodedMessage);
-    socket.write(frame);
-  }
-
-  /**
-   * Sends a notification to a specific client.
-   * @param {net.Socket} socket - The target socket.
-   * @param {string | object} notification - The notification to send. Can be a string or an object.
-   */
   sendNotification(socket, notification) {
     const encodedNotification = this.parser.encode(notification);
-    const frame = this._encodeFrame(encodedNotification, 0x2); // Opcode 0x2 for notifications
+    const frame = this._encodeFrame(encodedNotification, 0x2);
     socket.write(frame);
   }
 
-  /**
-   * Broadcasts a message to all connected clients.
-   * @param {string | object} message - The message to broadcast. Can be a string or an object.
-   */
   broadcast(message) {
     const encodedMessage = this.parser.encode(message);
     const frame = this._encodeFrame(encodedMessage);
@@ -298,33 +216,20 @@ export class CreamSocketServer extends EventEmitter {
     }
   }
 
-  /**
-   * Broadcasts a notification to all connected clients.
-   * @param {string | object} notification - The notification to broadcast. Can be a string or an object.
-   */
   broadcastNotification(notification) {
     const encodedNotification = this.parser.encode(notification);
-    const frame = this._encodeFrame(encodedNotification, 0x2); // Opcode 0x2 for notifications
+    const frame = this._encodeFrame(encodedNotification, 0x2);
     for (const client of this.clients) {
       client.write(frame);
     }
   }
 
-  /**
-   * Sends a Pong frame in response to a Ping.
-   * @param {net.Socket} socket - The target socket.
-   * @param {string} payload - The payload from the Ping.
-   */
   _sendPong(socket, payload) {
     const encodedPong = this.parser.encode(payload);
     const frame = this._encodeFrame(encodedPong, 0xA);
     socket.write(frame);
   }
 
-  /**
-   * Sends a Close frame to the client.
-   * @param {net.Socket} socket - The target socket.
-   */
   _sendCloseFrame(socket) {
     const frame = this._encodeFrame('', 0x8);
     socket.write(frame);
