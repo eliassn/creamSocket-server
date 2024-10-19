@@ -108,6 +108,7 @@ export class CreamSocketServer extends EventEmitter {
 
   _handleFrame(socket, data) {
     const frame = this._decodeFrame(data);
+    console.log('Raw data received:', data.toString());
     if (!frame) return;
 
     const decodedPayload = this.parser.decode(frame.payload);
