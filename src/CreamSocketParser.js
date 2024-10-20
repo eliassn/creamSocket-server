@@ -46,28 +46,38 @@ export class CreamSocketParser {
   /**
    * Decodes data based on the specified format.
    * @param {Buffer} data - The data to decode.
-   * @returns {object | string | Buffer | null} - The decoded data or null if incomplete.
+   * @returns {object | string | Buffer | null} - The decoded data.
    */
   decode(data) {
-    this.buffer = Buffer.concat([this.buffer, data]); // Accumulate data
+    // Ensure incoming data is a Buffer
+    if (!Buffer.isBuffer(data)) {
+      console.error('Expected a Buffer, but received:', data);
+      return null; // Exit if the data is not a Buffer
+    }
+
+    this.buffer = Buffer.concat([this.buffer, data]);
+
+    let decodedData;
 
     if (this.format === 'json') {
       try {
-        const decodedData = JSON.parse(this.buffer.toString('utf8')); // Use 'utf8' encoding
-        this.buffer = Buffer.alloc(0); // Clear buffer if successful
+        decodedData = JSON.parse(this.buffer.toString('utf8')); // Decode UTF-8 if it's text
+        this.buffer = Buffer.alloc(0); // Clear buffer
         return decodedData;
       } catch (error) {
         if (error.message.includes('Unexpected end of JSON input')) {
-          console.warn('Waiting for more data to complete the JSON message.');
+          return null; // Data not complete
+        } else {
+          console.error('Failed to decode JSON:', error);
+          this.buffer = Buffer.alloc(0); // Reset buffer
           return null;
         }
-        console.error('Failed to decode JSON data:', error);
-        this.buffer = Buffer.alloc(0); // Clear buffer on error
-        return null;
       }
     } else if (this.format === 'binary') {
-      return Buffer.isBuffer(data) ? data : Buffer.from(data);
+      return this.buffer; // Return raw buffer for binary data
     }
+
+    return null;
   }
 
   /**

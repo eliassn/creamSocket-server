@@ -108,31 +108,27 @@ export class CreamSocketServer extends EventEmitter {
 
   _handleFrame(socket, data) {
     const frame = this._decodeFrame(data);
-    console.log('Raw data received:', data.toString());
     if (!frame) return;
 
-    const decodedPayload = this.parser.decode(frame.payload);
-
-    switch (frame.opcode) {
-      case 0x1: // Text frame
-        this.emit('message', socket, decodedPayload);
-        break;
-      case 0x2: // Notification frame
-        this.emit('notification', socket, decodedPayload);
-        break;
-      case 0x8: // Connection close
-        socket.end();
-        break;
-      case 0x9: // Ping
-        this._sendPong(socket, frame.payload);
-        break;
-      case 0xA: // Pong
-        break;
-      default:
-        console.log(`Unhandled opcode: ${frame.opcode}`);
+    // Handle different opcodes
+    if (frame.opcode === 0x1) {
+      // Text frame
+      const decodedPayload = this.parser.decode(frame.payload.toString('utf8'));
+      this.emit('message', socket, decodedPayload);
+    } else if (frame.opcode === 0x2) {
+      // Binary frame (e.g., notifications)
+      const decodedPayload = this.parser.decode(frame.payload);
+      this.emit('notification', socket, decodedPayload);
+    } else if (frame.opcode === 0x8) {
+      socket.end(); // Connection close
+    } else if (frame.opcode === 0x9) {
+      this._sendPong(socket, frame.payload); // Ping
+    } else if (frame.opcode === 0xA) {
+      // Pong - no action needed
+    } else {
+      console.log(`Unhandled opcode: ${frame.opcode}`);
     }
   }
-
   _decodeFrame(buffer) {
     const firstByte = buffer.readUInt8(0);
     const secondByte = buffer.readUInt8(1);
