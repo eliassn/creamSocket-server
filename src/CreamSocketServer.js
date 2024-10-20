@@ -171,15 +171,12 @@ export class CreamSocketServer extends EventEmitter {
   }
 
   _encodeFrame(message, opcode = 0x1) {
-    const payload = Buffer.from(message, 'utf-8'); // Ensure UTF-8 encoding
+    const payload = new TextEncoder().encode(message); // Use TextEncoder
     const payloadLength = payload.length;
 
     let frame = [];
+    frame.push(0x80 | opcode); // First byte: FIN and opcode
 
-    // First byte: FIN and opcode
-    frame.push(0x80 | opcode);
-
-    // Determine payload length
     if (payloadLength < 126) {
       frame.push(payloadLength);
     } else if (payloadLength < 65536) {
@@ -193,14 +190,22 @@ export class CreamSocketServer extends EventEmitter {
       }
     }
 
-    // Concatenate frame and payload
-    return Buffer.concat([Buffer.from(frame), payload]);
+    // Combine the frame and payload into a single Uint8Array
+    const frameBuffer = new Uint8Array(frame.length + payloadLength);
+    frameBuffer.set(new Uint8Array(frame), 0);
+    frameBuffer.set(payload, frame.length);
+
+    return frameBuffer; // Return as Uint8Array
   }
 
-  sendMessage(socket, message) {
-    const frame = this._encodeFrame(message, 0x1);
-    socket.write(frame);
+
+  sendMessage(message) {
+    if (this.socket && this.connected) {
+      const encodedMessage = this.parser.encode(JSON.stringify(message)); // Convert to JSON string
+      this.socket.write(encodedMessage);
+    }
   }
+
 
   sendNotification(socket, notification) {
     const encodedNotification = this.parser.encode(notification);

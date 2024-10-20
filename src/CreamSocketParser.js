@@ -21,9 +21,9 @@ export class CreamSocketParser {
     let payload;
 
     if (this.format === 'json') {
-      payload = Buffer.from(typeof data === 'object' ? JSON.stringify(data) : String(data));
+      payload = new TextEncoder().encode(typeof data === 'object' ? JSON.stringify(data) : String(data));
     } else if (this.format === 'binary') {
-      payload = Buffer.isBuffer(data) ? data : Buffer.from(data);
+      payload = data instanceof Uint8Array ? data : new TextEncoder().encode(data);
     }
 
     const payloadLength = payload.length;
@@ -40,7 +40,12 @@ export class CreamSocketParser {
       }
     }
 
-    return Buffer.concat([Buffer.from(frame), payload]);
+    // Combine frame and payload into a single Uint8Array
+    const frameBuffer = new Uint8Array(frame.length + payloadLength);
+    frameBuffer.set(new Uint8Array(frame), 0);
+    frameBuffer.set(payload, frame.length);
+
+    return frameBuffer; // Return as Uint8Array
   }
 
   /**
@@ -49,27 +54,28 @@ export class CreamSocketParser {
    * @returns {object | string | Buffer | null} - The decoded data.
    */
   decode(data) {
-    // Ensure incoming data is a Buffer
-    if (!Buffer.isBuffer(data)) {
-      console.error('Expected a Buffer, but received:', data);
-      return null; // Exit if the data is not a Buffer
+    // Ensure incoming data is a Uint8Array
+    if (!(data instanceof Uint8Array)) {
+      console.error('Expected a Uint8Array, but received:', data);
+      return null; // Exit if the data is not a Uint8Array
     }
 
-    this.buffer = Buffer.concat([this.buffer, data]);
+    this.buffer = new Uint8Array([...this.buffer, ...data]); // Concatenate existing buffer with new data
 
     let decodedData;
 
     if (this.format === 'json') {
       try {
-        decodedData = JSON.parse(this.buffer.toString('utf8')); // Decode UTF-8 if it's text
-        this.buffer = Buffer.alloc(0); // Clear buffer
+        const text = new TextDecoder('utf-8').decode(this.buffer);
+        decodedData = JSON.parse(text); // Decode UTF-8 if it's text
+        this.buffer = new Uint8Array(); // Clear buffer
         return decodedData;
       } catch (error) {
         if (error.message.includes('Unexpected end of JSON input')) {
           return null; // Data not complete
         } else {
           console.error('Failed to decode JSON:', error);
-          this.buffer = Buffer.alloc(0); // Reset buffer
+          this.buffer = new Uint8Array(); // Reset buffer
           return null;
         }
       }
@@ -79,7 +85,6 @@ export class CreamSocketParser {
 
     return null;
   }
-
   /**
    * Handles incoming messages.
    * @param {Buffer | string} data - The received message data.
