@@ -60,30 +60,55 @@ export class CreamSocketParser {
       return null; // Exit if the data is not a Uint8Array
     }
 
-    this.buffer = new Uint8Array([...this.buffer, ...data]); // Concatenate existing buffer with new data
+    // Append new data to the existing buffer
+    this.buffer = new Uint8Array([...this.buffer, ...data]);
 
-    let decodedData;
+    // Check if we have enough data to process
+    while (this.buffer.length > 0) {
+      const frameHeader = this.buffer[0]; // Read the first byte
+      const opcode = frameHeader & 0x0F; // Extract the opcode
+      const payloadLength = this.buffer[1] & 0x7F; // Read the payload length
 
-    if (this.format === 'json') {
-      try {
-        const text = new TextDecoder('utf-8').decode(this.buffer);
-        decodedData = JSON.parse(text); // Decode UTF-8 if it's text
-        this.buffer = new Uint8Array(); // Clear buffer
-        return decodedData;
-      } catch (error) {
-        if (error.message.includes('Unexpected end of JSON input')) {
-          return null; // Data not complete
-        } else {
-          console.error('Failed to decode JSON:', error);
-          this.buffer = new Uint8Array(); // Reset buffer
-          return null;
-        }
+      // Determine full payload length
+      let fullPayloadLength = payloadLength;
+      let offset = 2; // Start reading after the first two bytes
+
+      if (payloadLength === 126) {
+        fullPayloadLength = this.buffer.readUInt16BE(offset); // 16-bit length
+        offset += 2;
+      } else if (payloadLength === 127) {
+        fullPayloadLength = this.buffer.readBigUInt64BE(offset); // 64-bit length
+        offset += 8;
       }
-    } else if (this.format === 'binary') {
-      return this.buffer; // Return raw buffer for binary data
+
+      // Ensure we have the entire payload
+      if (this.buffer.length < offset + fullPayloadLength) {
+        return null; // Not enough data to process the frame yet
+      }
+
+      // Extract the payload
+      const payload = this.buffer.slice(offset, offset + fullPayloadLength);
+
+      // Clear the buffer for the next frame
+      this.buffer = this.buffer.slice(offset + fullPayloadLength);
+
+      let decodedData;
+
+      // Handle the decoding based on the opcode
+      if (opcode === 0x1) { // Text frame
+        const text = new TextDecoder('utf-8').decode(payload);
+        decodedData = JSON.parse(text);
+      } else if (opcode === 0x2) { // Binary frame
+        decodedData = payload; // Return raw binary data
+      } else {
+        console.warn('Unhandled opcode:', opcode);
+        continue; // Skip unhandled opcodes
+      }
+
+      return decodedData; // Return the decoded data
     }
 
-    return null;
+    return null; // If no valid frame is processed, return null
   }
   /**
    * Handles incoming messages.
