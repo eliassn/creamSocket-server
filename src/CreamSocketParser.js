@@ -55,7 +55,7 @@ export class CreamSocketParser {
    */
   decode(data) {
     // Ensure incoming data is a Uint8Array
-    if (!(data instanceof Uint8Array)) {
+    if (!(data instanceof Uint8Array) && typeof data !== 'object') {
       console.error('Expected a Uint8Array, but received:', data);
       return null; // Exit if the data is not a Uint8Array
     }
