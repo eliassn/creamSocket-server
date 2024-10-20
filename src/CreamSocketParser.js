@@ -53,37 +53,38 @@ export class CreamSocketParser {
    * @param {Buffer} data - The data to decode.
    * @returns {object | string | Buffer | null} - The decoded data.
    */
-  encode(data, opcode = 0x1) {
-    let payload;
+  decode(data) {
+    // Ensure incoming data is a Uint8Array
+    if (!(data instanceof Uint8Array)) {
+      console.error('Expected a Uint8Array, but received:', data);
+      return null; // Exit if the data is not a Uint8Array
+    }
+
+    this.buffer = new Uint8Array([...this.buffer, ...data]); // Concatenate existing buffer with new data
+
+    let decodedData;
 
     if (this.format === 'json') {
-      payload = new TextEncoder().encode(typeof data === 'object' ? JSON.stringify(data) : String(data));
-    } else if (this.format === 'binary') {
-      payload = data instanceof Uint8Array ? data : new TextEncoder().encode(data);
-    }
-
-    const payloadLength = payload.length;
-    const frame = [0x80 | opcode]; // First byte: FIN and opcode
-
-    if (payloadLength < 126) {
-      frame.push(payloadLength);
-    } else if (payloadLength < 65536) {
-      frame.push(126, (payloadLength >> 8) & 0xff, payloadLength & 0xff);
-    } else {
-      frame.push(127);
-      for (let i = 7; i >= 0; i--) {
-        frame.push((payloadLength >> (i * 8)) & 0xff);
+      try {
+        const text = new TextDecoder('utf-8').decode(this.buffer);
+        decodedData = JSON.parse(text); // Decode UTF-8 if it's text
+        this.buffer = new Uint8Array(); // Clear buffer
+        return decodedData;
+      } catch (error) {
+        if (error.message.includes('Unexpected end of JSON input')) {
+          return null; // Data not complete
+        } else {
+          console.error('Failed to decode JSON:', error);
+          this.buffer = new Uint8Array(); // Reset buffer
+          return null;
+        }
       }
+    } else if (this.format === 'binary') {
+      return this.buffer; // Return raw buffer for binary data
     }
 
-    // Combine frame and payload into a single Buffer
-    const frameBuffer = Buffer.alloc(frame.length + payloadLength);
-    frameBuffer.set(new Uint8Array(frame), 0);
-    frameBuffer.set(payload, frame.length);
-
-    return frameBuffer; // Return as Buffer
+    return null;
   }
-
   /**
    * Handles incoming messages.
    * @param {Buffer | string} data - The received message data.
