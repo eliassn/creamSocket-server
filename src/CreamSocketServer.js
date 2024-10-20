@@ -203,8 +203,8 @@ export class CreamSocketServer extends EventEmitter {
     if (this.socket && this.connected) {
       const jsonString = JSON.stringify(message); // Convert to JSON string
       const encodedMessage = this.parser.encode(jsonString); // Encode the message
-      const bufferMessage = Buffer.from(encodedMessage); // Ensure it's a Buffer
-      this.socket.write(bufferMessage); // Send it
+      const frame = this._encodeFrame(encodedMessage); // Encode the frame properly
+      this.socket.write(frame); // Send it
     }
   }
 
