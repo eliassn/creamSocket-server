@@ -171,13 +171,15 @@ export class CreamSocketServer extends EventEmitter {
   }
 
   _encodeFrame(message, opcode = 0x1) {
-    const payload = Buffer.from(this.parser.encode(message));
+    const payload = Buffer.from(message, 'utf-8'); // Ensure UTF-8 encoding
     const payloadLength = payload.length;
 
     let frame = [];
 
+    // First byte: FIN and opcode
     frame.push(0x80 | opcode);
 
+    // Determine payload length
     if (payloadLength < 126) {
       frame.push(payloadLength);
     } else if (payloadLength < 65536) {
@@ -191,6 +193,7 @@ export class CreamSocketServer extends EventEmitter {
       }
     }
 
+    // Concatenate frame and payload
     return Buffer.concat([Buffer.from(frame), payload]);
   }
 
